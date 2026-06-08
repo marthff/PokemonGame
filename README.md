@@ -93,7 +93,7 @@ Executar:
 **Windows**
 
 ```powershell
-./PokemonGame
+./PokemonGame.exe
 ```
 
 ## Funcionamento
