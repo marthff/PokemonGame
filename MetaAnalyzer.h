@@ -2,6 +2,7 @@
 #include "CombatGraph.h"
 #include <set>
 #include <fstream>
+#include <unordered_map>
 #include <iostream>
 
 class MetaAnalyzer {
@@ -31,6 +32,83 @@ private:
     }
 
 public:
+
+    struct PathNode {
+    std::string stateId;
+    int damageTaken;
+
+    bool operator>(const PathNode& other) const {
+        return damageTaken > other.damageTaken;
+    }
+    };
+
+
+    void FindBestVictoryPath(CombatGraph& cg) {
+
+        std::unordered_map<std::string, int> minDamage;
+        std::unordered_map<std::string, std::pair<std::string, std::string>> parent;
+
+        std::priority_queue<PathNode, std::vector<PathNode>, std::greater<PathNode>> pq;
+
+        pq.push({cg.rootId, 0});
+        minDamage[cg.rootId] = 0;
+        std::string finalWinningState = "";
+        int bestFinalDamage = 999999;
+
+        while (!pq.empty()) {
+            PathNode current = pq.top();
+            pq.pop();
+
+            if (current.damageTaken > minDamage[current.stateId]) continue;
+
+            GraphNode* node = cg.graphMap[current.stateId];
+
+            if (node->state.hp1 > 0 && node->state.hp2 <= 0) {
+                if (current.damageTaken < bestFinalDamage) {
+                    bestFinalDamage = current.damageTaken;
+                    finalWinningState = current.stateId;
+                }
+                continue;
+            }
+
+            for (const auto& transition : node->transitions) {
+                GraphNode* nextNode = cg.graphMap[transition.nextStateId];
+
+                int damageInStep = node->state.hp1 - nextNode->state.hp1;
+                int totalDamage = current.damageTaken + std::max(0, damageInStep);
+
+                if (minDamage.find(transition.nextStateId) == minDamage.end() || totalDamage < minDamage[transition.nextStateId]) {
+                    minDamage[transition.nextStateId] = totalDamage;
+
+                    std::string moveDesc = node->state.p1->moves[transition.moveIdx1].name;
+                    parent[transition.nextStateId] = {current.stateId, moveDesc};
+
+                    pq.push({transition.nextStateId, totalDamage});
+                }
+            }
+        }
+
+        if (finalWinningState != "") {
+            std::cout << "\n--- ESTRATEGIA OTIRIMIZADA (MIN-HEAP) ---\n";
+            std::cout << "Objetivo: Vencer sofrendo o minimo de dano.\n";
+
+            std::vector<std::string> path;
+            std::string curr = finalWinningState;
+            while (curr != cg.rootId) {
+                path.push_back("Use " + parent[curr].second + " -> Estado: " + curr);
+                curr = parent[curr].first;
+            }
+
+            for (int i = path.size() - 1; i >= 0; i--) {
+                std::cout << "Passo " << path.size() - i << ": " << path[i] << std::endl;
+            }
+            std::cout << "Dano total acumulado: " << bestFinalDamage << "%\n";
+        } else {
+            std::cout << "Nao foi encontrado um caminho de vitoria garantida para este combate.\n";
+        }
+    }
+
+
     int CheckAbsoluteWinner(CombatGraph& cg) {
         std::set<std::string> visited;
         std::queue<std::string> q;
@@ -77,6 +155,7 @@ public:
         std::set<std::string> stack;
         return hasCycleDFS(cg.rootId, cg.graphMap, visited, stack);
     }
+
 
     float CalculateWinRateP1(CombatGraph& cg) {
         int p1Leaves = 0;

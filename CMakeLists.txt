@@ -8,7 +8,7 @@ include_directories(.)
 add_executable(PokemonGame
         CombatGraph.h
         main.cpp
-        MetaAnalizer.h
+        MetaAnalyzer.h
         PokemonBase.h
         main.cpp
 )

@@ -5,7 +5,7 @@
 
 #include "PokemonBase.h"
 #include "CombatGraph.h"
-#include "MetaAnalyzer.h"
+#include "MetaAnalizer.h"
 
 void ExibirRelatorioGeral(const std::vector<Pokemon*>& team1, const std::vector<Pokemon*>& team2, MetaAnalyzer& analyzer) {
     std::map<std::string, float> pokemonGlobalWinScore;
@@ -109,13 +109,7 @@ int main() {
         std::cout << "2. Escolher um Combate Especifico por Etapas\n";
         std::cout << "3. Sair do Simulador\n";
         std::cout << "Escolha uma opcao: ";
-        if (!(std::cin >> opcao)) {
-            std::cin.clear();
-            std::cin.ignore(10000, '\n');
-
-            std::cout << "Entrada invalida! Digite apenas numeros.\n";
-            continue;
-        }
+        std::cin >> opcao;
 
         if (opcao == 1) {
             ExibirRelatorioGeral(team1, team2, analyzer);
@@ -127,12 +121,7 @@ int main() {
             }
             int escolha1;
             std::cout << "Escolha (1-6): ";
-            if (!(std::cin >> escolha1)) {
-                std::cin.clear();
-                std::cin.ignore(10000, '\n');
-                std::cout << "Entrada invalida! Digite apenas numeros.\n";
-                continue;
-            }
+            std::cin >> escolha1;
 
             std::cout << "\n--- SELECIONE O POKEMON DO TIME 2 ---\n";
             for (size_t i = 0; i < team2.size(); ++i) {
@@ -140,18 +129,14 @@ int main() {
             }
             int escolha2;
             std::cout << "Escolha (1-6): ";
-            if (!(std::cin >> escolha2)) {
-                std::cin.clear();
-                std::cin.ignore(10000, '\n');
-                std::cout << "Entrada invalida! Digite apenas numeros.\n";
-                continue;
-            }
+            std::cin >> escolha2;
 
             if (escolha1 >= 1 && escolha1 <= 6 && escolha2 >= 1 && escolha2 <= 6) {
                 Pokemon* p1 = team1[escolha1 - 1];
                 Pokemon* p2 = team2[escolha2 - 1];
 
                 CombatGraph cg(p1, p2);
+                analyzer.FindBestVictoryPath(cg);
                 analyzer.PrintSampleBattle(cg);
 
             } else {
